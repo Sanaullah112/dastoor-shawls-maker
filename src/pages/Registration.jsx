@@ -27,7 +27,7 @@ const Registration = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await axios.get(`${backendURL}api/product/`);
+        const res = await axios.get(`${backendURL}/api/product/`);
         setCountries(res.data);
       } catch (err) {
         console.error("Error loading countries:", err);

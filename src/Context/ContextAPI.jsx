@@ -30,9 +30,9 @@ export const AuthProvider = ({ children }) => {
   const loggedIn = !!token;
 
 //function for autentication and getting data
-const userAuthentication = async() =>{
+const userAuthentication = async() =>{ 
    try {
-      const responseData = await fetch(`http://localhost:5000/api/auth/userData`,{
+      const responseData = await fetch(`https://dastoor-backend.onrender.com/api/auth/userData`,{
          method:"GET",
          headers:{
            Authorization: `Bearer${token}`,
