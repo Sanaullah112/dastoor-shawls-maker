@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* @import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css"; */
+
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+body {
+  background: white !important;
+}
+
+/* .active{
+    background-color: #ffebf5;
+    border-color: #C586A5;
+} */
+
+select,input,textarea{
+    border: 1px solid #c2c2c2;
+    outline-color: #C586A5;
+    border-radius: 6px;
+}
+@keyframes slideRightMenu {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.slide-right {
+  animation: slideRightMenu 0.35s ease forwards;
+}
