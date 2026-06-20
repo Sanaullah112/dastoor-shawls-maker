@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { backendURL } from "../../App";
-import { FaTrashAlt } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { FaTrashAlt, FaBoxOpen } from "react-icons/fa";
+import Swal from "sweetalert2";
 
 const List = () => {
   const [products, setProducts] = useState([]);
@@ -17,7 +17,12 @@ const List = () => {
       setProducts(res.data.products || []);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to fetch products.");
+      Swal.fire({
+        icon: "error",
+        title: "Fetch Failed",
+        text: "Failed to load products from the server.",
+        confirmButtonColor: "#3085d6",
+      });
     } finally {
       setLoading(false);
     }
@@ -27,102 +32,152 @@ const List = () => {
     fetchProducts();
   }, []);
 
-  // Remove product
+  // Remove product with SweetAlert2 configuration
   const handleRemove = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to remove this product?");
-    if (!confirmDelete) return;
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444", // Tailwind red-500
+      cancelButtonColor: "#6b7280",  // Tailwind gray-500
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await axios.post(
+            `${backendURL}api/product/remov`,
+            { id },
+            {
+              headers: { Authorization: localStorage.getItem("adminToken") },
+            }
+          );
 
-    try {
-      const res = await axios.post(
-        `${backendURL}api/product/remov`,
-        { id },
-        {
-          headers: { Authorization: localStorage.getItem("adminToken") },
+          if (res.data.success) {
+            Swal.fire({
+              title: "Deleted!",
+              text: "Product has been successfully removed.",
+              icon: "success",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+            setProducts((prev) => prev.filter((item) => item._id !== id));
+          } else {
+            Swal.fire("Error!", "Failed to remove the product.", "error");
+          }
+        } catch (error) {
+          console.error(error);
+          Swal.fire("Error!", "Something went wrong while removing product.", "error");
         }
-      );
-
-      if (res.data.success) {
-        toast.success("Product removed successfully!");
-        setProducts((prev) => prev.filter((item) => item._id !== id));
-      } else {
-        toast.error("Failed to remove product.");
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error removing product.");
-    }
+    });
   };
 
   if (loading) {
-    return <p className="text-center text-gray-500 mt-10">Loading products...</p>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <p className="text-gray-500 mt-4 font-medium">Loading products...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4 sm:p-6">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-700">All Products</h2>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">All Products</h2>
+            <p className="text-sm text-gray-500 mt-1">Manage and update your inventory list</p>
+          </div>
+          <span className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-semibold border border-indigo-100">
+            Total Items: {products.length}
+          </span>
+        </div>
 
-      {products.length === 0 ? (
-        <p className="text-center text-gray-500">No products found.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-            <thead>
-              <tr className="bg-gray-100 text-gray-600 text-sm uppercase text-left">
-                <th className="p-3">Image</th>
-                <th className="p-3">Name</th>
-                <th className="p-3">Category</th>
-                <th className="p-3">Sub Category</th>
-                <th className="p-3">Size</th>
-                <th className="p-3">Best Seller</th>
-                <th className="p-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((item) => (
-                <tr
-                  key={item._id}
-                  className="border-b hover:bg-gray-50 transition duration-200"
-                >
-                  <td className="p-3">
-                    <img
-                       src={
+        {products.length === 0 ? (
+          <div className="text-center py-16 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+            <FaBoxOpen className="mx-auto text-gray-400 mb-3" size={48} />
+            <p className="text-gray-500 font-medium text-lg">No products found.</p>
+            <p className="text-sm text-gray-400 mt-1">Add items to see them here.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="min-w-full divide-y divide-gray-200 text-left">
+              <thead className="bg-gray-50">
+                <tr className="text-gray-700 text-xs font-bold uppercase tracking-wider">
+                  <th className="p-4 w-24">Image</th>
+                  <th className="p-4">Name</th>
+                  <th className="p-4">Category</th>
+                  <th className="p-4">Sub Category</th>
+                  <th className="p-4">Size</th>
+                  <th className="p-4 text-center">Best Seller</th>
+                  <th className="p-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100 text-sm">
+                {products.map((item) => (
+                  <tr
+                    key={item._id}
+                    className="hover:bg-gray-50/70 transition duration-150"
+                  >
+                    <td className="p-4 whitespace-nowrap">
+                      <img
+                        src={
                           item.image?.[0]
                             ? `${backendURL.replace(/\/$/, "")}${item.image[0]}`
                             : "/noimage.jpg"
                         }
                         alt={item.name}
-                      className="w-16 h-16 object-cover rounded-md border"
-                    />
-                  </td>
-                  <td className="p-3 text-gray-700">{item.name}</td>
-                  <td className="p-3 text-gray-600">{item.category}</td>
-                  <td className="p-3 text-gray-600">{item.subCategory}</td>
-                  <td className="p-3 text-gray-600">
-                    {Array.isArray(item.sizes)
-                      ? item.sizes.join(", ")
-                      : item.sizes}
-                  </td>
-                  <td className="p-3">
-                    {item.bestSeller ? (
-                      <span className="text-green-600 font-medium">Yes</span>
-                    ) : (
-                      <span className="text-gray-400">No</span>
-                    )}
-                  </td>
-                  <td className="p-3 text-center">
-                    <button
-                      onClick={() => handleRemove(item._id)}
-                      className="text-red-500 hover:text-red-700 transition"
-                    >
-                      <FaTrashAlt size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                        className="w-14 h-14 object-cover rounded-lg border border-gray-100 bg-gray-50"
+                      />
+                    </td>
+                    <td className="p-4 font-semibold text-gray-800 max-w-xs truncate">
+                      {item.name}
+                    </td>
+                    <td className="p-4 text-gray-600 whitespace-nowrap">{item.category}</td>
+                    <td className="p-4 text-gray-500 whitespace-nowrap">{item.subCategory}</td>
+                    <td className="p-4 whitespace-nowrap">
+                      {Array.isArray(item.sizes) && item.sizes.length > 0 ? (
+                        <div className="flex gap-1 flex-wrap">
+                          {item.sizes.map((sz, idx) => (
+                            <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded border border-gray-200 font-medium">
+                              {sz}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="p-4 text-center whitespace-nowrap">
+                      {item.bestSeller ? (
+                        <span className="inline-flex items-center bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+                          Yes
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center bg-gray-50 text-gray-400 text-xs px-2.5 py-1 rounded-full border border-gray-200">
+                          No
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 text-center whitespace-nowrap">
+                      <button
+                        onClick={() => handleRemove(item._id)}
+                        className="inline-flex p-2 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-lg transition duration-150 border border-transparent hover:border-red-100"
+                        title="Delete Product"
+                      >
+                        <FaTrashAlt size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

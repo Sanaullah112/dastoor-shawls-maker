@@ -23,7 +23,7 @@
     "react-slick": "^0.31.0",
     "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
-    "sweetalert2": "^11.26.3",
+    "sweetalert2": "^11.26.25",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
