@@ -1,10 +1,11 @@
 import { useState, useContext, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import axios from "axios";
 import Swal from "sweetalert2";
 import { ShopContext } from "../../Context/ShopContext";
 import { backendURL } from "../../App";
-import { FaSearch, FaSlidersH, FaBoxOpen } from "react-icons/fa";
+import { FaSearch, FaSlidersH, FaBoxOpen, FaLightningHorizontal } from "react-icons/fa";
 
 // Configure a reusable SweetAlert2 toast notification template
 const FilterToast = Swal.mixin({
@@ -31,7 +32,7 @@ const Collection = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter + Search together
+  // Filter + Fixed Safe Search matching criteria logic pipeline
   const filteredProducts = useMemo(() => {
     return products.filter((item) => {
       const matchCategory =
@@ -39,9 +40,11 @@ const Collection = () => {
       const matchSubCategory =
         !filters.subCategory || item.subCategory === filters.subCategory;
       const matchSize = !filters.size || (item.sizes && item.sizes.includes(filters.size));
-      const matchSearch =
-        !searchTerm ||
-        item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Robust and safe string fallback to prevent error if database name is temporarily blank
+      const itemName = item.name ? String(item.name).toLowerCase() : "";
+      const searchTarget = searchTerm ? String(searchTerm).toLowerCase().trim() : "";
+      const matchSearch = !searchTarget || itemName.includes(searchTarget);
 
       return matchCategory && matchSubCategory && matchSize && matchSearch;
     });
@@ -74,6 +77,115 @@ const Collection = () => {
       background: document.documentElement.classList.contains("dark") ? "#1f2937" : "#fff",
       color: document.documentElement.classList.contains("dark") ? "#fff" : "#000"
     });
+  };
+
+  // Direct Checkout Form Submission pipeline handling logic
+  const handleQuickOrder = async (e, item) => {
+    e.stopPropagation(); // Avoid triggering navigation to product detail screen layout
+
+    // Format target sizing structure checks
+    const sizeOptions = Array.isArray(item.sizes) && item.sizes.length > 0 
+      ? item.sizes.reduce((acc, current) => { acc[current] = current; return acc; }, {})
+      : null;
+
+    let targetSize = "Standard";
+
+    // 1. If product provides explicit sizing options, prompt choice dialog sheet first
+    if (sizeOptions) {
+      const { value: selectedSize } = await Swal.fire({
+        title: "Select Preferred Size",
+        input: "radio",
+        inputOptions: sizeOptions,
+        inputValidator: (value) => {
+          if (!value) return "You must select a product layout size specification.";
+        },
+        confirmButtonColor: "#4f46e5",
+        confirmButtonText: "Next Step",
+        background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#fff",
+        color: document.documentElement.classList.contains("dark") ? "#fff" : "#000"
+      });
+
+      if (!selectedSize) return; // Order aborted by user
+      targetSize = selectedSize;
+    }
+
+    // 2. Open form viewport container to map delivery variables directly
+    const { value: customerDetails } = await Swal.fire({
+      title: "Confirm Direct Purchase",
+      html: `
+        <div style="text-align: left;" class="space-y-3 font-sans">
+          <p class="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-2">Item: ${item.name} (${targetSize})</p>
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:#64748b;">Full Delivery Name</label>
+          <input id="swal-input-name" class="swal2-input" style="width:100%; margin:0 0 12px 0; height:42px; font-size:14px; border-radius:8px;" placeholder="John Doe">
+          
+          <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:#64748b;">Phone Number</label>
+          <input id="swal-input-phone" class="swal2-input" style="width:100%; margin:0 0 4px 0; height:42px; font-size:14px; border-radius:8px;" placeholder="+1 234 567 890">
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Place Order Now",
+      confirmButtonColor: "#10b981", // Success green
+      cancelButtonColor: "#6b7280",
+      background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#fff",
+      color: document.documentElement.classList.contains("dark") ? "#fff" : "#000",
+      preConfirm: () => {
+        const fullName = document.getElementById("swal-input-name").value.trim();
+        const phone = document.getElementById("swal-input-phone").value.trim();
+        
+        if (!fullName || !phone) {
+          Swal.showValidationMessage("Please input all required shipment context fields.");
+          return false;
+        }
+        return { fullName, phone };
+      }
+    });
+
+    if (!customerDetails) return;
+
+    // 3. Dispatch payload request to background database router endpoints
+    try {
+      Swal.fire({
+        title: "Processing...",
+        text: "Securing your instant checkout gateway payload.",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      const today = new Date();
+      const payload = {
+        productName: item.name,
+        productCategory: item.category,
+        productSubCategory: item.subCategory,
+        selectedImage: item.image?.[0] || "",
+        status: "pending",
+        customer: {
+          fullName: customerDetails.fullName,
+          phone: customerDetails.phone,
+          date: today.toLocaleDateString(),
+          time: today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      };
+
+      const cleanBaseURL = backendURL.endsWith('/') ? backendURL : `${backendURL}/`;
+      await axios.post(`${cleanBaseURL}api/orders`, payload);
+
+      Swal.fire({
+        icon: "success",
+        title: "Order Placed Successfully!",
+        text: "Thank you! Your direct inventory routing context request has been registered.",
+        confirmButtonColor: "#4f46e5"
+      });
+
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Checkout Faulted",
+        text: "An validation or timeout issue caused request degradation. Try again.",
+        confirmButtonColor: "#ef4444"
+      });
+    }
   };
 
   const uniqueCategories = [...new Set(products.map((p) => p.category))];
@@ -225,9 +337,16 @@ const Collection = () => {
                     {item.description || "No description provided."}
                   </p>
                   
-                  <div className="mt-4 pt-3 border-t border-gray-50 dark:border-gray-700">
-                    <button className="py-2.5 bg-gray-50 hover:bg-indigo-600 text-gray-700 hover:text-white dark:bg-gray-700/50 dark:hover:bg-indigo-600 dark:text-gray-200 w-full rounded-xl text-xs font-bold transition duration-150 tracking-wide">
-                      View Product Details
+                  {/* Quick Functional Actions Area */}
+                  <div className="mt-4 pt-3 border-t border-gray-50 dark:border-gray-700 flex flex-col gap-2">
+                    <button 
+                      onClick={(e) => handleQuickOrder(e, item)}
+                      className="py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white w-full rounded-xl text-xs font-bold transition duration-150 tracking-wide flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-200 dark:shadow-none"
+                    >
+                      Instant Order Now
+                    </button>
+                    <button className="py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 dark:bg-gray-700/40 dark:hover:bg-gray-700 dark:text-gray-300 w-full rounded-xl text-[11px] font-semibold transition duration-150">
+                      View Details
                     </button>
                   </div>
                 </div>

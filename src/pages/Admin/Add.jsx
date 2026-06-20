@@ -53,7 +53,6 @@ const Add = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Show clean loading alert during network request
     Swal.fire({
       title: "Uploading Product...",
       text: "Please wait while we process your request.",
@@ -72,7 +71,6 @@ const Add = () => {
       formData.append("bestSeller", items.bestSeller);
       formData.append("sizes", items.size);
 
-      // Append images
       if (images.image1) formData.append("image1", images.image1);
       if (images.image2) formData.append("image2", images.image2);
       if (images.image3) formData.append("image3", images.image3);
@@ -84,7 +82,6 @@ const Add = () => {
         },
       });
 
-      // Success Alert Box
       Swal.fire({
         icon: "success",
         title: "Product Added!",
@@ -93,7 +90,6 @@ const Add = () => {
         showConfirmButton: false,
       });
 
-      // Reset form on success
       setItems({
         name: "",
         description: "",
@@ -106,8 +102,6 @@ const Add = () => {
       setPreviews({ image1: Img, image2: Img, image3: Img });
     } catch (error) {
       console.error("Upload failed:", error);
-      
-      // Error Alert Box
       Swal.fire({
         icon: "error",
         title: "Submission Failed",
@@ -120,17 +114,17 @@ const Add = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen flex justify-center items-start">
-      <div className="w-full max-w-2xl bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-800 mb-1">Add New Product</h2>
-        <p className="text-sm text-gray-500 mb-6">Create a new entry in your store inventory.</p>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen flex justify-center items-start">
+      <div className="w-full max-w-2xl bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">Add New Product</h2>
+        <p className="text-xs sm:text-sm text-gray-500 mb-6">Create a new entry in your store inventory.</p>
 
         <form onSubmit={onSubmit} className="space-y-5" encType="multipart/form-data">
           
-          {/* Image Upload section */}
+          {/* Responsive Image Upload Section */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Images</label>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               {["image1", "image2", "image3"].map((imgKey) => (
                 <label 
                   key={imgKey} 
@@ -140,10 +134,10 @@ const Add = () => {
                   <img
                     src={previews[imgKey]}
                     alt="Preview"
-                    className="w-24 h-24 sm:w-28 sm:w-28 object-cover rounded-lg"
+                    className="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 object-cover rounded-lg"
                   />
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center transition duration-150">
-                    <FaCloudUploadAlt className="text-white" size={24} />
+                    <FaCloudUploadAlt className="text-white" size={22} />
                   </div>
                   <input
                     type="file"
@@ -186,7 +180,7 @@ const Add = () => {
             />
           </div>
 
-          {/* Categories Row */}
+          {/* Categories Row - Adapts from grid-cols-1 on mobile to 2 columns on tablets */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Product Category</label>
@@ -233,25 +227,25 @@ const Add = () => {
           </div>
 
           {/* Bestseller Checkbox */}
-          <div className="flex items-center gap-2.5 pt-1">
+          <div className="flex items-start gap-2.5 pt-1">
             <input
               onChange={handleChangeItems}
               checked={items.bestSeller}
               name="bestSeller"
               type="checkbox"
               id="bestSeller"
-              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+              className="mt-0.5 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
             />
-            <label className="text-sm font-medium text-gray-700 cursor-pointer select-none" htmlFor="bestSeller">
+            <label className="text-sm font-medium text-gray-700 cursor-pointer select-none leading-tight" htmlFor="bestSeller">
               Mark this product as a Bestseller
             </label>
           </div>
 
-          {/* Form Action Button */}
+          {/* Form Action Button - Full width on mobile, auto width on screens higher than mobile */}
           <div className="pt-2">
             <button
               disabled={isSubmitting}
-              className="w-full sm:w-32 py-3 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-36 py-3 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               type="submit"
             >
               {isSubmitting ? "Adding..." : "Add Product"}

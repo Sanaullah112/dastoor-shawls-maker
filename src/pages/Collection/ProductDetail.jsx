@@ -83,7 +83,9 @@ const ProductDetail = () => {
             setLoading(true);
 
             // 1. Send transaction data to database background pipeline
-            const res = await axios.post(`${backendURL}api/orders/add`, newOrder);
+          // Ensure there is exactly one slash connecting the base URL with the API endpoint paths
+            const cleanBaseURL = backendURL.endsWith('/') ? backendURL : `${backendURL}/`;
+            const res = await axios.post(`${cleanBaseURL}api/orders/add`, newOrder);
             console.log("✅ Order saved successfully:", res.data);
 
             // 2. Format localized elegant WhatsApp textual markup 
