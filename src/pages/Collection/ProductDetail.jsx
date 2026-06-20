@@ -96,7 +96,7 @@ const ProductDetail = () => {
             window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, "_blank");
 
             // ✅ Send order data to backend
-            const res = await axios.post(`${backendURL}/api/orders/add`, newOrder);
+            const res = await axios.post(`${backendURL}api/orders/add`, newOrder);
             console.log("✅ Order saved successfully:", res.data);
 
             // ✅ Reset form and close modal

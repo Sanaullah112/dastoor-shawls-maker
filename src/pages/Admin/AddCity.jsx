@@ -12,7 +12,7 @@ export const AddCity = () => {
   // Load countries
   useEffect(() => {
     axios
-      .get(`${backendURL}/api/product`)
+      .get(`${backendURL}api/product`)
       .then((res) => setCountries(res.data))
       .catch(() => toast.error("Failed to load countries")); 
   }, []);
@@ -30,7 +30,7 @@ export const AddCity = () => {
 
     try {
       const res = await axios.post(
-        `${backendURL}/api/product/cities`,
+        `${backendURL}api/product/cities`,
         { name: cityName, country: countryId },
         {
           headers: {

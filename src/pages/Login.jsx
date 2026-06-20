@@ -37,7 +37,7 @@ const Login = () => {
     setSuccess("");
     console.log("Login Form Data :", formData);
     try {
-      const res = await fetch(`${backendURL}/api/auth/login`, {
+      const res = await fetch(`${backendURL}api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

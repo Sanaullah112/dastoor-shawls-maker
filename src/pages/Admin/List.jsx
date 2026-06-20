@@ -11,7 +11,7 @@ const List = () => {
   // Fetch all products
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${backendURL}/api/product/list`, {
+      const res = await axios.get(`${backendURL}api/product/list`, {
         headers: { Authorization: localStorage.getItem("adminToken") },
       });
       setProducts(res.data.products || []);
@@ -34,7 +34,7 @@ const List = () => {
 
     try {
       const res = await axios.post(
-        `${backendURL}/api/product/remov`,
+        `${backendURL}api/product/remov`,
         { id },
         {
           headers: { Authorization: localStorage.getItem("adminToken") },

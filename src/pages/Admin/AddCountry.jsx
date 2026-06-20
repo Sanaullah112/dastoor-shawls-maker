@@ -12,7 +12,7 @@ export const AddCountry = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        `${backendURL}/api/product/addcountries`,
+        `${backendURL}api/product/addcountries`,
         { name, code },
         {
           headers: { Authorization: localStorage.getItem("adminToken") }

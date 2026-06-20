@@ -23,7 +23,7 @@ const AdminHome = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get(`${backendURL}/api/admin/stats`);
+        const res = await axios.get(`${backendURL}api/admin/stats`);
         setStats(res.data);
       } catch (error) {
         console.error("Error fetching admin stats:", error);

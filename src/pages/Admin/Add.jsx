@@ -67,7 +67,7 @@ const Add = () => {
       if (images.image2) formData.append("image2", images.image2);
       if (images.image3) formData.append("image3", images.image3);
 
-      const res = await axios.post(`${backendURL}/api/product/add`, formData, {
+      const res = await axios.post(`${backendURL}api/product/add`, formData, {
         headers: {
           Authorization: localStorage.getItem("adminToken"),
           "Content-Type": "multipart/form-data",

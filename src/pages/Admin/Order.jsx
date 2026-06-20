@@ -12,7 +12,7 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${backendURL}/api/orders`);
+      const res = await axios.get(`${backendURL}api/orders`);
       setOrders(res.data);
     } catch (err) {
       console.error("Error fetching orders:", err);
@@ -46,7 +46,7 @@ const Orders = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`${backendURL}/api/orders/${id}`);
+          await axios.delete(`${backendURL}api/orders/${id}`);
           setOrders((prev) => prev.filter((order) => order._id !== id));
 
           Swal.fire({
@@ -84,7 +84,7 @@ const Orders = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`${backendURL}/api/orders/clear`);
+          await axios.delete(`${backendURL}api/orders/clear`);
           setOrders([]);
 
           Swal.fire({
